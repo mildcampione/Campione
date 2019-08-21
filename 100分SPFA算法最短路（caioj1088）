@@ -1,0 +1,74 @@
+#include<cstdio>
+#include<cstring>
+using namespace std;
+struct bian//表示有向边的结构体，构建编目录
+{
+    int x,y,d,next;// x表示出发点，y表示终点，next表示和x相连的上一条边的编号
+};
+ 
+bian a[210000]; int len,last[11000];//a的个数是边的个数，last的个数是点的个数。
+ 
+//last[i]表示最后一条和点i相连的边的编号。
+int d[11000];//d[i]表示目前i和出发点的最短距离
+ 
+ 
+void ins(int x,int y,int d)// ins函数的功能是建立一条边
+{
+    len++;//全局增加一条有向边，len一开始为0
+    a[len].x=x; a[len].y=y;a[len].d=d;//边的赋值
+    a[len].next=last[x]; last[x]=len;//边的联系
+}
+ 
+int list[11000],head,tail;//list用来存排队准备更新其他人的点，head表示头，tail表示尾
+bool v[11000];// v[i]等于true表示点i在队列list中，等于false表示点i不再队列list中
+int n;
+ 
+int main()
+{
+    //freopen("a.in","r",stdin);
+    //freopen("a.out","w",stdout);
+        int x,y,c,m,st,ed;
+        scanf("%d%d",&n,&m);
+        len=0;  memset(last,0,sizeof(last));//注意构图之前一定要初始化，不然后果很严重！
+        for(int i=1;i<=m;i++)
+        {
+            scanf("%d%d%d",&x,&y,&c);//题目给出的是无向边，而我们的边目录是有向边
+            ins(x,y,c);//建立正向边
+            ins(y,x,c);//建立反向边
+ 
+        }
+//1：初始化d，这样后面才有更新的必要
+        st=1;ed=n;
+        for(int i=1;i<=n;i++) d[i]=999999999; 
+        d[st]=0;//出发点为0
+//2：初始化v, 一开始所有点都没有       
+        memset(v,false,sizeof(v)); v[st]=true;//点1作为出发点已经进入list
+//3：初始化队列list
+        list[1]=st; head=1;tail=2;//队列的头是有人的，队列的尾tail指的位置是没人的
+        while(head!=tail)//只要头不等于尾，就表示还有人需要更新别人
+        {
+            x=list[head];//取出准备好更新别人的人x
+            for(int k=last[x];   k   ;   k=a[k].next )//重点理解！k首相等于和x相连的最后一条边的编号。那么倒数第二条和x相连的边的编号是多少呢？在a[最后一条].next可以找到
+            {
+                y=a[k].y;
+                if(d[y]>d[x]+a[k].d)//更新是一定要的
+                {
+                    d[y]=d[x]+a[k].d;
+                    if(v[y]==false)//如果被更新了，那么要考虑进入队列（考虑是否去更新别人）
+                    {
+                        v[y]=true;
+                        list[tail]=y;
+                        tail++; if(tail==n+1) tail=1;//如果tail超过队列的最后一个，则变为第一个
+                    }
+                }
+            }
+//x已经完成更新别人的任务，就要退出队列list，那么需要做什么呢？
+            list[head]=0;
+            head++; if(head==n+1) head=1; //如果head超过队列的最后一个，则变为第一个
+            v[x]=false;
+        }
+        printf("%d\n",d[n]);//最后输出终点到出发点的距离
+     
+    return 0;
+}
+ 
